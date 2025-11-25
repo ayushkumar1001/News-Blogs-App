@@ -1,17 +1,82 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Weather from "./Weather";
 import Calendar from "./Calendar";
 import "./News.css";
 import userImg from "../assets/images/user.jpg";
+import noImg from '../assets/images/no-img.png'
+import axios from 'axios'
+
+
+const categories = [
+  'general',
+  'world',
+  'business',
+  'technology',
+  'entertainment',
+  'sports',
+  'science',
+  'health',
+  'nation',
+]
 
 const News = () => {
+
+  const [headline, setHeadline] = useState(null);
+  const [news, setNews] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('general');
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      const url = `https://gnews.io/api/v4/top-headlines?category=${selectedCategory}&lang=en&apikey=ed7ab69b837ffc1b31ee42aa3c80aefe`
+
+      if (searchQuery) {
+        url = 'https://gnews.io/api/v4/search?q=${searchQuery}&lang=en&apikey=ed7ab69b837ffc1b31ee42aa3c80aefe'
+      }
+
+      try {
+        const response = await axios.get(url)
+        const fetchedNews = response.data.articles
+
+        fetchedNews.forEach((article) => {
+          if (!article.image) {
+            article.image = noImg
+          }
+        })
+
+        setHeadline(fetchedNews[0])
+        setNews(fetchedNews.slice(1, 7))
+
+        console.log(fetchedNews)
+      } catch (error) {
+        console.error('Failed to fetch news', error)
+      }
+    }
+
+    fetchNews()
+  }, [selectedCategory, searchQuery])
+
+  const handleCategoryClick = (e, category) => {
+    e.preventDefault()
+    setSelectedCategory(category)
+  }
+
+  const handleSearch = (e) => {
+    e.preventDefault()
+    setSearchQuery(searchInput)
+    setSearchInput('')
+  }
+
   return (
     <div className="news">
       <header className="news-header">
         <h1 className="logo">News & Blogs</h1>
         <div className="search-bar">
-          <form>
-            <input type="text" placeholder="Search News..." />
+          <form onSubmit={handleSearch}>
+            <input type="text" placeholder="Search News..."  
+            value={searchInput}
+             onChange={(e) => setSearchInput(e.target.value)}/>
             <button type="submit">
               <i className="fa-solid fa-magnifying-glass"></i>
             </button>
@@ -27,34 +92,16 @@ const News = () => {
           <nav className="categories">
             <h1 className="nav-heading">Categories</h1>
             <div className="nav-links">
-              <a href="#" className="nav-link">
-                General
-              </a>
-              <a href="#" className="nav-link">
-                World
-              </a>
-              <a href="#" className="nav-link">
-                Business
-              </a>
-              <a href="#" className="nav-link">
-                Technology
-              </a>
-              <a href="#" className="nav-link">
-                Entertainment
-              </a>
+              {categories.map((category) => (
+                <a href="#"
+                  key={category}
+                  className="nav-link"
+                  onClick={(e) => handleCategoryClick(e, category)}
+                >
+                  {category}
+                </a>
+              ))}
 
-              <a href="#" className="nav-link">
-                Sports
-              </a>
-              <a href="#" className="nav-link">
-                Science
-              </a>
-              <a href="#" className="nav-link">
-                Health
-              </a>
-              <a href="#" className="nav-link">
-                Nation
-              </a>
               <a href="#" className="nav-link">
                 Bookmarks <i className="fa-regular fa-bookmark"></i>
               </a>
@@ -62,8 +109,28 @@ const News = () => {
           </nav>
         </div>
         <div className="news-section">
-          <div className="headline">Headline</div>
-          <div className="news-grid">News Grid</div>
+          {headline && (
+            <div className="headline">
+              <img src={headline.image || noImg} alt={headline.title} />
+              <h2 className="headline-title">
+                {headline.title}
+                <i className="fa-regular fa-bookmark bookmark"></i>
+              </h2>
+            </div>
+          )}
+
+          <div className="news-grid">
+            {news.map((article, index) => (
+              <div key={index} className="news-grid-item">
+                <img src={article.image || noImg} alt={article.title} />
+                <h3>
+                  {article.title}
+                  <i className="fa-regular fa-bookmark bookmark"></i>
+                </h3>
+              </div>
+            ))}
+
+          </div>
         </div>
         <div className="my-blogs">My Blogs</div>
         <div className="weather-calendar">
