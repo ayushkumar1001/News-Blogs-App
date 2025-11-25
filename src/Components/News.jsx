@@ -51,6 +51,8 @@ const News = () => {
         console.log(fetchedNews)
       } catch (error) {
         console.error('Failed to fetch news', error)
+        console.log(error.message);
+        
       }
     }
 
