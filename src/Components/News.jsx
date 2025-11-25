@@ -16,7 +16,7 @@ const categories = [
   'sports',
   'science',
   'health',
-  'nation',
+  'nations',
 ]
 
 const News = () => {
